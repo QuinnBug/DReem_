@@ -89,8 +89,8 @@ def full_debug_point(dc):
         elif cmd == "help":
             print("""
 > fetch closed companies = get all companies with a closure date 
-> add = import the data from a companies house oriented csv to the database 
-> add test = import the data from a test csv to the database 
+> add ch = import the data from a companies house oriented csv to the database 
+> add nomis = import the data from a companies house oriented csv to the database  
 > search = get info from the database using a criteria 
 > execute = input an SQL query 
 > fetch last = get the info from the last query

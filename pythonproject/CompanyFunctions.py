@@ -26,10 +26,24 @@ index = namedtuple('IndexList',
 
 
 def company_close_date(company):
+    index_setup()
     if company[index.close_date] != '':
         return datetime.strptime(company[index.close_date], '%d/%m/%Y')
     else:
         return datetime.strptime('01/01/1000', '%d/%m/%Y')
+
+
+def company_start_date(company):
+    index_setup()
+    if company[index.start_date] != '':
+        return datetime.strptime(company[index.start_date], '%d/%m/%Y')
+    else:
+        return datetime.strptime('01/01/1000', '%d/%m/%Y')
+
+
+def company_sic1(company):
+    index_setup()
+    return company[index.sic1][:5]
 
 
 def index_setup():
@@ -76,7 +90,7 @@ def convert(row, postcodes, counties, ee_spec):
         c.append(datetime.strptime('01/01/1000', '%d/%m/%Y'))
 
     try:
-        c.append(ee_spec.sic_is_ee(float(row[index.sic1][:6])))  # if the sic code is in the list of ee sics
+        c.append(ee_spec.sic_is_ee(int(row[index.sic1][:5])))  # if the sic code is in the list of ee sics
     except:
         c.append("false")
         # print('INVALID SIC CODE')
@@ -218,7 +232,8 @@ class EESpecification:
         return self.header
 
     def sic_is_ee(self, code):
-        if self.data.__contains__(code):
-            return "true"
-        else:
-            return "false"
+        for row in self.data:
+            if row[0] == code:
+                return "true"
+
+        return "false"

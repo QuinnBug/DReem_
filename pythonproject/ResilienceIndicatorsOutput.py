@@ -59,23 +59,29 @@ def produce_csv(dc, filename):
             turnover = 0
 
         employees = int(employees * 100)
+        employees = employees / 100
         turnover = int(turnover * 100)
+        turnover = turnover / 100
 
-        row.append(str(employees) + "%")
-        row.append(str(turnover) + "%")
+        # row.append(str(employees) + "%")
+        # row.append(str(turnover) + "%")
+        row.append(str(employees))
+        row.append(str(turnover))
 
         nomis_ee_total = data[1]
 
         data = birth_rate_data(dc, la[0])
         br = int(data[0] * 100)
+        br = br / 100
         aoy = data[1]
 
         ch_ee_total = data[2]
         formal_eco_count = int((nomis_ee_total/ch_ee_total) * 100)
+        formal_eco_count = formal_eco_count / 100
 
-        row.append(str(br) + "%")
+        row.append(str(br))
         row.append(aoy)
-        row.append(str(formal_eco_count) + "%")
+        row.append(str(formal_eco_count))
 
         writer.writerow(row)
 

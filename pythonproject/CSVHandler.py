@@ -63,18 +63,34 @@ def add_ch_to_database(filename, dc):
 
             # get the current entry if the company is in the database
             sql_name = row[0].replace('"', '\\"')
-            select_query = 'SELECT is_active, closure_date FROM companies WHERE name="{0}" LIMIT 1'
+            select_query = 'SELECT is_active, closure_date, incorporation_date, is_ee FROM companies WHERE name="{0}" LIMIT 1'
             dc.cursor.execute(select_query.format(sql_name))
             result = dc.cursor.fetchone()
+
+            sd = cf.company_start_date(row)
+
+            if str(sd) > "2021-10-01":
+                print(str(sd.date()) + " - greater than october")
+            if str(sd) == "1000-01-01":
+                print(str(sd) + " - invalid?")
 
             if dc.cursor.rowcount > 0:
                 active = cf.is_active(row)
                 cd = cf.company_close_date(row).date()
-                if (result[0] != active) or (str(result[1]) != str(cd)):
-                    update_query = 'UPDATE companies SET closure_date="{0}", is_active="{1}" WHERE name="{2}" LIMIT 1'
 
-                    dc.cursor.execute(update_query.format(cd, active, sql_name))
+                # if (result[0] != active) or (str(result[1]) != str(cd)):
+                #     update_query = 'UPDATE companies SET closure_date="{0}", is_active="{1}" WHERE name="{2}" LIMIT 1'
+                #
+                #     dc.cursor.execute(update_query.format(cd, active, sql_name))
+
+                is_ee = e.sic_is_ee(cf.company_sic1(row))
+                if str(result[2]) != str(sd.date()) or is_ee != result[3]:
+                    update_query = 'UPDATE companies SET incorporation_date="{0}", is_ee="{1}" WHERE name="{2}" LIMIT 1'
+                    dc.cursor.execute(update_query.format(sd.date(), is_ee, sql_name))
                     dc.commit_to_db()
+
+                    print(str(sd.date()) + " - " + str(result[2]) + " -- updated")
+
                     update_count += 1
                 else:
                     none_count += 1
@@ -86,8 +102,13 @@ def add_ch_to_database(filename, dc):
                         VALUES ( %s, %s ,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """
 
-                dc.cursor.execute(insert_companies_query, cf.convert(row, p, c, e))
+                data = cf.convert(row, p, c, e)
+                dc.cursor.execute(insert_companies_query, data)
                 dc.commit_to_db()
+
+                if str(sd.date()) > "2021-10-01":
+                    a = 1
+
                 insert_count += 1
 
         dc.cursor.execute("ALTER TABLE companies DROP INDEX ch_names_asc")

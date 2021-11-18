@@ -340,7 +340,7 @@ def nomis_graph_data(dc, la, years):
 
 def ch_graph_data(dc, la):
     date_strings = ["2020-12-01", "2021-01-01", "2021-02-01", "2021-03-01", "2021-04-01", "2021-05-01",
-                    "2021-06-01", "2021-07-01", "2021-08-01", "2021-09-01", "2021-10-01"]
+                    "2021-06-01", "2021-07-01", "2021-08-01", "2021-09-01", "2021-10-01", "2021-11-01"]
 
     values = []
     for i in date_strings:
@@ -356,6 +356,9 @@ def ch_graph_data(dc, la):
         while str(company[0]) > str(date_strings[i]):
             i += 1
 
+        if str(company[0]) >= str(date_strings[11]):
+            print(str(company[0]))
+
         closed = False
         while (i < len(date_strings)) & (closed is False):
             closed = (str(company[1]) < str(date_strings[i])) and (str(company[1]) != "1000-01-01")
@@ -363,10 +366,10 @@ def ch_graph_data(dc, la):
                 values[i] += 1
                 i += 1
             else:
-                print(str(company[0]) + " - " + str(company[1]) + " :: " + str(i))
+                print(str(company[0]) + " - " + str(company[1]) + " :: " + str(i) + " - something weird here")
 
-    if values[9] != values[10]:
-        print(la)
+    if values[10] == values[11]:
+        print(la + " - oct/nov are the same")
 
     return [date_strings, values]
 
