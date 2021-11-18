@@ -28,6 +28,35 @@ class DataBase:
 
     # specific purpose functions
 
+    def fix_is_ee_ch(self):
+        update_query = 'UPDATE companies SET is_ee="{0}" WHERE name="{1}"'
+        date_counter = 0
+        update_counter = 0
+
+        self.cursor.execute("SELECT name, sic1, is_ee, incorporation_date FROM companies")
+        all_companies = self.cursor.fetchall()
+
+        for company in all_companies:
+            try:
+                if ee_sics.__contains__(int(company[1])):
+                    is_ee = "true"
+                else:
+                    is_ee = "false"
+            except:
+                is_ee = "false"
+
+            if str(company[3]) > "2021-11-01":
+                date_counter += 1
+                print(str(company[3]))
+
+            if company[2] != is_ee:
+                update_counter += 1
+                sql_name = company[0].replace('"', '\\"')
+                self.cursor.execute(update_query.format(is_ee, sql_name))
+
+        print("Date Counter: " + str(date_counter))
+        print("Update Counter: " + str(update_counter))
+
     def save_nomis_la_stats(self):
         readfile = open("local_auths_trimmed.txt", 'r', newline='')
         local_auths = readfile.read().splitlines()
@@ -218,17 +247,18 @@ class DataBase:
             print(row)
 
     def custom_query(self):
-        years = [2018, 2019, 2020]
-        employees_per_year = []
-        select_q = 'SELECT employees FROM nomis WHERE year={0} AND local_auth="Derby"'
-        for year in years:
-            self.cursor.execute(select_q.format(year))
-            results = self.cursor.fetchall()
-            employees_per_year.append(0)
-            for result in results:
-                employees_per_year[years.index(year)] += result[0]
-
-        print(employees_per_year)
+        self.fix_is_ee_ch()
+        # years = [2018, 2019, 2020]
+        # employees_per_year = []
+        # select_q = 'SELECT employees FROM nomis WHERE year={0} AND local_auth="Derby"'
+        # for year in years:
+        #     self.cursor.execute(select_q.format(year))
+        #     results = self.cursor.fetchall()
+        #     employees_per_year.append(0)
+        #     for result in results:
+        #         employees_per_year[years.index(year)] += result[0]
+        #
+        # print(employees_per_year)
         input("press any button to continue...")
 
     def update_indexes(self, table, key, col):
@@ -247,14 +277,11 @@ class DataBase:
         self.commit_to_db()
 
     def produce_graphs(self):
-        self.update_indexes('nomis', 'nomis_ysla_asc', 'year,sic,local_auth')
-        self.update_indexes('nomis', 'nomis_la_asc', 'local_auth')
-        self.update_indexes('companies', 'ch_ee', 'is_ee')
-        self.update_indexes('companies', 'ch_la_asc', 'local_authority')
-        self.update_indexes('companies', 'ch_sic1_asc', 'sic1')
-        self.update_indexes('companies', 'ch_sic2_asc', 'sic2')
-        self.update_indexes('companies', 'ch_sic3_asc', 'sic3')
-        self.update_indexes('companies', 'ch_sic4_asc', 'sic4')
+        # self.update_indexes('nomis', 'nomis_ysla_asc', 'year,sic,local_auth')
+        # self.update_indexes('nomis', 'nomis_la_asc', 'local_auth')
+        # self.update_indexes('companies', 'ch_ee', 'is_ee')
+        # self.update_indexes('companies', 'ch_la_asc', 'local_authority')
+        # self.update_indexes('companies', 'ch_sic1_asc', 'sic1')
 
         self.cursor.execute("SELECT DISTINCT local_authority FROM companies")
         local_auths = self.cursor.fetchall()
@@ -283,40 +310,40 @@ class DataBase:
             Graphs.make_line_graph(ch_data, "Number Of Active E-E Companies Registered At Companies House",
                                    "Graphs/CH_Companies/" + la[0], False, "Month", "# of Companies")
 
-            nom_data = Graphs.nomis_graph_data(self, la[0], [2016, 2017, 2018, 2019, 2020, 2021])
+            # nom_data = Graphs.nomis_graph_data(self, la[0], [2016, 2017, 2018, 2019, 2020, 2021])
+            #
+            # Graphs.make_line_graph(nom_data[0],
+            #                        "Estimated Employee Count Across All E-E Companies",
+            #                        "Graphs/Employees/" + la[0], True, "Year", "# of Employees")
+            #
+            # Graphs.make_line_graph(nom_data[1],
+            #                        "Number Of Active E-E Companies Pay VAT/PAYE",
+            #                        "Graphs/Companies/" + la[0], False, "Year", "# of Companies")
+            #
+            # Graphs.make_line_graph(nom_data[2],
+            #                        "Estimated Annual Turnover Of All E-E Companies",
+            #                        "Graphs/Turnover/" + la[0], True, "Year", "Annual Turnover")
 
-            Graphs.make_line_graph(nom_data[0],
-                                   "Estimated Employee Count Across All E-E Companies",
-                                   "Graphs/Employees/" + la[0], True, "Year", "# of Employees")
-
-            Graphs.make_line_graph(nom_data[1],
-                                   "Number Of Active E-E Companies Pay VAT/PAYE",
-                                   "Graphs/Companies/" + la[0], False, "Year", "# of Companies")
-
-            Graphs.make_line_graph(nom_data[2],
-                                   "Estimated Annual Turnover Of All E-E Companies",
-                                   "Graphs/Turnover/" + la[0], True, "Year", "Annual Turnover")
-
-            Graphs.make_pie_graph(graph_data=Graphs.ee_v_all_pie_data(self, 2021, la[0]),
-                                  graph_labels=["EE Companies", "Other Companies"],
-                                  title="E-E Companies As A Proportion Of All Companies Registered",
-                                  filename="Graphs/EEvALL_Pie/" + la[0], as_percent=True)
+            # Graphs.make_pie_graph(graph_data=Graphs.ee_v_all_pie_data(self, 2021, la[0]),
+            #                       graph_labels=["EE Companies", "Other Companies"],
+            #                       title="E-E Companies As A Proportion Of All Companies Registered",
+            #                       filename="Graphs/EEvALL_Pie/" + la[0], as_percent=True)
 
             Graphs.make_histogram(Graphs.lifespan_of_company_data(self, "2021-11-01", la[0]),
                                   "E-E Company Survival Rate From Birth To 3 Years", "Graphs/Lifespan/" + la[0],
                                   "Months in Operation", "# of Companies")
 
-            Graphs.make_pie_graph(graph_data=Graphs.freelancer_estimate(self, 2021, la[0], ee_specs),
-                                  graph_labels=["Creative Industries", "Digital sector",
-                                                "Cultural sector", "Tourism sector", "Sports sector"],
-                                  title="Estimated Distribution Of Freelancers Across All E-E Sectors",
-                                  filename="Graphs/Freelancers/" + la[0], as_percent=False)
-
-            Graphs.make_pie_graph(graph_data=Graphs.percent_of_category_pie_data(self, 2021, la[0], ee_specs),
-                                  graph_labels=["Creative Industries", "Digital sector",
-                                                "Cultural sector", "Tourism sector", "Sports sector"],
-                                  title="Representation Of E-E Companies By Sector",
-                                  filename="Graphs/PercentOfCategory/" + la[0], as_percent=True)
+            # Graphs.make_pie_graph(graph_data=Graphs.freelancer_estimate(self, 2021, la[0], ee_specs),
+            #                       graph_labels=["Creative Industries", "Digital sector",
+            #                                     "Cultural sector", "Tourism sector", "Sports sector"],
+            #                       title="Estimated Distribution Of Freelancers Across All E-E Sectors",
+            #                       filename="Graphs/Freelancers/" + la[0], as_percent=False)
+            #
+            # Graphs.make_pie_graph(graph_data=Graphs.percent_of_category_pie_data(self, 2021, la[0], ee_specs),
+            #                       graph_labels=["Creative Industries", "Digital sector",
+            #                                     "Cultural sector", "Tourism sector", "Sports sector"],
+            #                       title="Representation Of E-E Companies By Sector",
+            #                       filename="Graphs/PercentOfCategory/" + la[0], as_percent=True)
 
             hm_data = Graphs.ch_heatmap_data(self, la[0])
             Graphs.make_heatmap(hm_data[0], hm_data[1], counties, la[0])

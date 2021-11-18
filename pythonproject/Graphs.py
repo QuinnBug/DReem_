@@ -356,9 +356,6 @@ def ch_graph_data(dc, la):
         while str(company[0]) > str(date_strings[i]):
             i += 1
 
-        if str(company[0]) >= str(date_strings[11]):
-            print(str(company[0]))
-
         closed = False
         while (i < len(date_strings)) & (closed is False):
             closed = (str(company[1]) < str(date_strings[i])) and (str(company[1]) != "1000-01-01")
@@ -368,9 +365,10 @@ def ch_graph_data(dc, la):
             else:
                 print(str(company[0]) + " - " + str(company[1]) + " :: " + str(i) + " - something weird here")
 
-    if values[10] == values[11]:
-        print(la + " - oct/nov are the same")
-
+    # if values[10] == values[11]:
+    #     print(la + " - oct/nov are the same")
+    del date_strings[len(date_strings) - 1]
+    del values[len(values) - 1]
     return [date_strings, values]
 
 
